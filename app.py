@@ -9,14 +9,12 @@ def main():
 
 	if len(sys.argv) != 2:
 	    print()
-	    print('Usage: `python mbox-splitter.py filename.mbox size`')
-	    print('         where `size` is a positive integer in Mb')
+	    print('Usage: `python app.py filename`')
 	    print()
-	    print('Example: `python mbox-splitter.py inbox_test.mbox 50`')
-	    print('         where inbox_test.mbox size is about 125 Mb')
+	    print('Example: `python app.py test_file.html`')
 	    print()
 	    print('Example Result:')
-	    print('Created file `example_out.html`') 
+	    print('Created file `test_fileout.html`') 
 	    print('Done')
 	    exit()
 
@@ -35,32 +33,61 @@ def main():
 	    exit()
 
 
-	output = filename.rsplit(".", 1)[0] + "out." + filename.rsplit(".", 1)[1]
+	output = filename.rsplit(".", 1)[0] + "_out." + filename.rsplit(".", 1)[1]
 	# if exists(output):
 	#     print('The file `{}` has already been splitted. Delete chunks to continue.'.format(filename))
 	#     exit()
 
 
+	if filename.split('.')[-1] == 'html':
 
-	INCREASER = ('<')
-	DECREASER = ('</')
-	NEUTRAL = ("<img", "<input", "<br")
+		INCREASER = ('<')
+		DECREASER = ('</')
+		NEUTRAL = ("<img", "<input", "<br")
+		NEW_LINE = (">")
 
+		with open(filename, 'r', encoding='iso-8859-1') as original_file:
 
+			read_string = original_file.read()
+			replaced_string = read_string.replace(">", ">\n")
+			replaced_string2 = replaced_string.replace("<", "\n<")
+			replaced_string3 = replaced_string2.replace("\n\n", "\n")
 
+	elif filename.split('.')[-1] == 'json':
 
-	with open(filename, 'r', encoding='iso-8859-1') as original_file:
+		INCREASER = ('[', '{')
+		DECREASER = ('} ', ']')
+		# NEUTRAL = (", ", "}, {", "}", "}, ", "], ")
+		NEUTRAL = ('''"''', '''{"''')
 
-		read_string = original_file.read()
-		replaced_string = read_string.replace(">", ">\n")
-		replaced_string2 = replaced_string.replace("<", "\n<")
-		replaced_string3 = replaced_string2.replace("\n\n", "\n")
+		NEW_LINE = ()
+		REPLACEMENT = {
+						'''}, ''': '''}, \n''',
+						'''[{''': '''[\n{''', 
+						'''},''': '''},\n''', 
+						''': [''': ''': \n[''',
+						'''{''': '''\n{''',
+						'''{"''': '''{\n"''',
+						'''", "''': '''", \n"''',
+						'''}''': '''\n}''',
+						''']''': ''']\n''',
+						'''["''': '''[\n"''',
+						''', "''': ''', \n"''',
+
+						}
+		
+		with open(filename, 'r', encoding='iso-8859-1') as original_file:
+			read_string = original_file.read()
+
+			for replace_key in REPLACEMENT.keys():
+				read_string = read_string.replace(replace_key, REPLACEMENT[replace_key])
+			
 	
 
 	with open(output, "w", encoding='iso-8859-1') as new_file:
 		level = 0
 		going_up = True
-		for line in replaced_string3.split("\n"):
+		for line in read_string.split("\n"):
 			print(line)
 			if line.startswith(DECREASER):
 				if going_up == True:
